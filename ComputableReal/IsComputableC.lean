@@ -20,6 +20,7 @@ open ComplexConjugate
 
 /-- Turns one `IsComputableℂ` into another one, given a proof that they're equal. This is directly
 analogous to `decidable_of_iff`, as a way to avoid `Eq.rec` on data-carrying instances. -/
+@[reducible]
 def lift_eq {x y : ℂ} (h : x = y) [hx : IsComputableℂ x] : IsComputableℂ y :=
   ⟨hx.1.lift_eq (congrArg _ h), hx.2.lift_eq (congrArg _ h)⟩
 
@@ -155,8 +156,12 @@ noncomputable instance instComputableQSMul (q : ℚ) : IsComputableℂ (q • x)
   --  ⟨let _ := hx.1; .lift_eq (Complex.re_qsmul q x).symm inferInstance,
   -- let _ := hx.2; .lift_eq (Complex.im_qsmul q x).symm inferInstance⟩
 
-instance instComputableInner : IsComputable (inner x y) :=
-  inferInstanceAs (IsComputable (Complex.re (conj x * y)))
+/- #synth Inner ℝ ℂ
+#check instInnerProductSpaceRealComplex.toInner -/
+
+instance instComputableInner : IsComputable (inner ℝ x y) := by
+  dsimp [inner]
+  infer_instance
 
 instance instComputableNorm : IsComputable ‖x‖ :=
   inferInstanceAs (IsComputable (√(Complex.normSq x)))

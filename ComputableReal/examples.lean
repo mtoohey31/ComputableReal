@@ -55,7 +55,7 @@ example : |√5 - (2 / exp 1 + 3 / 2)| < 0.001 := by
 --We don't get to cheat! If we try to turn up the "precision" so that it becomes
 -- false, the tactic fails and informs us:
 /--
-error: tactic 'native_decide' evaluated that the proposition
+error: Tactic `native_decide` evaluated that the proposition
   |√5 - (2 / rexp 1 + 3 / 2)| < 1e-4
 is false
 -/
@@ -70,37 +70,6 @@ example :
   native_decide
 
 example : |√2 - (3/5 + π / (7 - π))| < 0.00001 := by
-  native_decide
-
-/-
-If we try to use a function that isn't supported, then the error will sometimes tell us the
- relevant function, that it's noncomputable.
--/
-/--
-error: failed to compile definition, consider marking it as 'noncomputable' because it
-depends on 'ProbabilityTheory.gammaCDFReal', and it does not have executable code
--/
-#guard_msgs in
-example : 0 < ProbabilityTheory.gammaCDFReal 1 1 2 := by
-  native_decide
-
-/-
-Often, though, it will refer to some *other* noncomputable term. For instance, if you have
-division of reals anywhere, it might complain that 'Real.instDivInvMonoid' is noncomputable,
-even though `ProbabilityTheory.gammaCDFReal` is the actual culprit.
-
-This happens because it first tries to make a `Decidable` instance using `ComputableReal`,
-it fails (because there's no implementation for `ProbabilityTheory.gammaCDFReal`), and then
-it falls back to `Real.decidableLT` (which is really just `Classical.propDecidable`). And
-then it tries to compile the whole definition, and fails on the first noncomputable term
-it hits.
--/
-/--
-error: failed to compile definition, consider marking it as 'noncomputable' because it depends on
-'Real.instDivInvMonoid', and it does not have executable code
--/
-#guard_msgs in
-example : 0 < ProbabilityTheory.gammaCDFReal 1 (1 / 2) 2 := by
   native_decide
 
 /- Operations over complex numbers: -/

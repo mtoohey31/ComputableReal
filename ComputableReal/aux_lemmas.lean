@@ -2,7 +2,7 @@ import Mathlib.Data.Real.Archimedean
 
 --============
 --silly lemmas
-theorem abs_ite_le [inst : LinearOrderedAddCommGroup α] (x : α) :
+theorem abs_ite_le [Field α] [LinearOrder α] [IsStrictOrderedRing α] (x : α) :
     abs x = if 0 ≤ x then x else -x := by
   split_ifs <;> simp_all
   next h =>
@@ -10,7 +10,7 @@ theorem abs_ite_le [inst : LinearOrderedAddCommGroup α] (x : α) :
 
 namespace CauSeq
 
-variable [LinearOrderedField α] {a b : CauSeq α abs}
+variable [Field α] [LinearOrder α] [IsStrictOrderedRing α] {a b : CauSeq α abs}
 
 theorem sup_equiv_of_equivs (ha : a ≈ c) (hb : b ≈ c) : a ⊔ b ≈ c := by
   intro n hn
@@ -74,6 +74,8 @@ theorem cauchy_real_mk (x : CauSeq ℚ abs) : ∀ ε > 0, ∃ i, ∀ j ≥ i, |x
   simp_rw [abs_sub_comm]
   refine ⟨i, fun j hj ↦ lt_of_le_of_lt (Real.mk_near_of_forall_near ⟨i, fun k hk ↦ ?_⟩) hq'⟩
   exact_mod_cast (hi k hk j hj).le
+
+theorem le_or_lt [LinearOrder α] (x y : α) : x ≤ y ∨ y < x := by grind
 
 --end silly lemmas
 --================

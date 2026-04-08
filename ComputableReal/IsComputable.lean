@@ -13,37 +13,46 @@ namespace IsComputable
 
 /-- Turns one `IsComputable` into another one, given a proof that they're equal. This is directly
 analogous to `decidable_of_iff`, as a way to avoid `Eq.rec` on data-carrying instances. -/
+@[reducible, macro_inline]
 def lift_eq {x y : ℝ} (h : x = y) :
     IsComputable x → IsComputable y :=
   fun ⟨sx, hsx⟩ ↦ ⟨sx, h ▸ hsx⟩
 
+@[reducible, macro_inline]
 def lift (fr : ℝ → ℝ) (fs : ComputableℝSeq → ComputableℝSeq)
     (h : ∀ a, (fs a).val = fr a.val) :
     IsComputable x → IsComputable (fr x) :=
   fun ⟨sx, hsx⟩ ↦ ⟨fs sx, hsx ▸ h sx⟩
 
+@[reducible, macro_inline]
 def lift₂ (fr : ℝ → ℝ → ℝ) (fs : ComputableℝSeq → ComputableℝSeq → ComputableℝSeq)
     (h : ∀a b, (fs a b).val = fr a.val b.val) :
     IsComputable x → IsComputable y → IsComputable (fr x y) :=
   fun ⟨sx, hsx⟩ ⟨sy, hsy⟩ ↦ ⟨fs sx sy, hsx ▸ hsy ▸ h sx sy⟩
 
+@[macro_inline]
 instance instComputableNat (n : ℕ) : IsComputable n :=
   ⟨ComputableℝSeq.ofRat n, ComputableℝSeq.val_natCast⟩
 
+@[macro_inline]
 instance instComputableInt (z : ℤ) : IsComputable z :=
   ⟨ComputableℝSeq.ofRat z, ComputableℝSeq.val_intCast⟩
 
+@[macro_inline]
 instance instComputableRat (q : ℚ) : IsComputable q :=
   ⟨ComputableℝSeq.ofRat q, ComputableℝSeq.val_ratCast⟩
 
+@[macro_inline]
 instance instComputableOfNat1 : IsComputable
     (@OfNat.ofNat.{0} Real 1 (@One.toOfNat1.{0} Real inferInstance)) :=
   ⟨1, ComputableℝSeq.val_one⟩
 
+@[macro_inline]
 instance instComputableOfNat0 : IsComputable
     (@OfNat.ofNat.{0} Real 0 (@Zero.toOfNat0.{0} Real inferInstance)) :=
   ⟨0, ComputableℝSeq.val_zero⟩
 
+@[macro_inline]
 instance instComputableOfNatAtLeastTwo : (n : ℕ) → [n.AtLeastTwo] → IsComputable ofNat(n) :=
   fun _ _ ↦ ⟨
     ⟨fun _ ↦ ⟨⟨_, _⟩, rfl.le⟩,
@@ -52,24 +61,31 @@ instance instComputableOfNatAtLeastTwo : (n : ℕ) → [n.AtLeastTwo] → IsComp
       by rfl⟩,
     ComputableℝSeq.val_eq_mk_lb _⟩
 
+@[macro_inline]
 instance instComputableNeg (x : ℝ) [hx : IsComputable x] : IsComputable (-x) :=
   lift _ (- ·) ComputableℝSeq.val_neg hx
 
+@[macro_inline]
 instance instComputableInv (x : ℝ) [hx : IsComputable x] : IsComputable (x⁻¹) :=
-  lift _ (·⁻¹) ComputableℝSeq.val_inv hx
+  lift _ ComputableℝSeq.inv ComputableℝSeq.val_inv hx
 
+@[macro_inline]
 instance instComputableAdd [hx : IsComputable x] [hy : IsComputable y] : IsComputable (x + y) :=
   lift₂ _ (· + ·) ComputableℝSeq.val_add hx hy
 
+@[macro_inline]
 instance instComputableSub [hx : IsComputable x] [hy : IsComputable y] : IsComputable (x - y) :=
   lift₂ _ (· - ·) ComputableℝSeq.val_sub hx hy
 
+@[macro_inline]
 instance instComputableMul [hx : IsComputable x] [hy : IsComputable y] : IsComputable (x * y) :=
   lift₂ _ (· * ·) ComputableℝSeq.val_mul hx hy
 
+@[macro_inline]
 instance instComputableDiv [hx : IsComputable x] [hy : IsComputable y] : IsComputable (x / y) :=
   lift₂ _ (· / ·) ComputableℝSeq.val_div hx hy
 
+@[macro_inline]
 instance instComputableNatPow [hx : IsComputable x] (n : ℕ) : IsComputable (x ^ n) := by
   /-TODO(mul_assoc)
   Redo this to use native powering on the ComputableℝSeq. This avoids more costly
@@ -82,13 +98,15 @@ instance instComputableNatPow [hx : IsComputable x] (n : ℕ) : IsComputable (x 
   · rw [pow_succ]
     infer_instance
 
+@[macro_inline]
 instance instComputableZPow [hx : IsComputable x] (z : ℤ) : IsComputable (x ^ z) := by
   cases z
-  · rw [Int.ofNat_eq_coe, zpow_natCast]
+  · rw [Int.ofNat_eq_natCast, zpow_natCast]
     infer_instance
   · simp only [zpow_negSucc]
     infer_instance
 
+@[macro_inline]
 instance instComputableNSMul [hx : IsComputable x] (n : ℕ) : IsComputable (n • x) :=
   lift _ (n • ·) (by
     --TODO move to a ComputableℝSeq lemma
@@ -99,10 +117,12 @@ instance instComputableNSMul [hx : IsComputable x] (n : ℕ) : IsComputable (n �
       simp [ih, succ_nsmul, add_mul]
     ) hx
 
+@[macro_inline]
 instance instComputableZSMul [hx : IsComputable x] (z : ℤ) : IsComputable (z • x) := by
   rw [zsmul_eq_mul]
   infer_instance
 
+@[macro_inline]
 instance instComputableQSMul [hx : IsComputable x] (q : ℚ) : IsComputable (q • x) := by
   change IsComputable (_ * _)
   infer_instance
@@ -110,24 +130,29 @@ instance instComputableQSMul [hx : IsComputable x] (q : ℚ) : IsComputable (q �
 /-- When expressions involve that happen to be `IsComputable`, we can get a decidability
 instance by lifting them to a comparison on the `ComputableℝSeq`s, where comparison is
 computable. -/
+@[macro_inline]
 instance instDecidableLE [hx : IsComputable x] [hy : IsComputable y] : Decidable (x ≤ y) :=
   decidable_of_decidable_of_iff (p := Computableℝ.mk hx.seq ≤ Computableℝ.mk hy.seq) (by
     simp only [← Computableℝ.le_iff_le, Computableℝ.val_mk_eq_val, hx.prop, hy.prop]
   )
 
+@[macro_inline]
 instance instDecidableEq [hx : IsComputable x] [hy : IsComputable y] : Decidable (x = y) :=
   decidable_of_decidable_of_iff (p := (Computableℝ.mk hx.seq = Computableℝ.mk hy.seq)) (by
     simp only [← Computableℝ.eq_iff_eq_val, Computableℝ.val_mk_eq_val, hx.prop, hy.prop]
   )
 
+@[macro_inline]
 instance instDecidableLT [hx : IsComputable x] [hy : IsComputable y] : Decidable (x < y) :=
   decidable_of_decidable_of_iff (p := Computableℝ.mk hx.seq < Computableℝ.mk hy.seq) (by
     simp only [← Computableℝ.lt_iff_lt, Computableℝ.val_mk_eq_val, hx.prop, hy.prop]
   )
 
+@[macro_inline]
 instance instDecidableLE_val (x y : ComputableℝSeq) : Decidable (x.val ≤ y.val) :=
   @instDecidableLE x.val y.val ⟨x, rfl⟩ ⟨y,rfl⟩
 
+@[macro_inline]
 instance instDecidableLT_val (x y : ComputableℝSeq) : Decidable (x.val < y.val) :=
   @instDecidableLT x.val y.val ⟨x, rfl⟩ ⟨y,rfl⟩
 
@@ -194,13 +219,14 @@ theorem Real_mk_of_TendstoLocallyUniformly' (fImpl : ℕ → ℚ → ℚ) (f : �
 
   calc |↑(fImpl j (x j)) - f (Real.mk ⟨x, hx⟩)| =
     |(↑(fImpl j (x j)) - f ↑(x j)) + (f ↑(x j) - f (Real.mk ⟨x, hx⟩))| := by congr; ring_nf
-    _ ≤ |(↑(fImpl j (x j)) - f ↑(x j))| + |(f ↑(x j) - f (Real.mk ⟨x, hx⟩))| := abs_add _ _
+    _ ≤ |(↑(fImpl j (x j)) - f ↑(x j))| + |(f ↑(x j) - f (Real.mk ⟨x, hx⟩))| := abs_add_le _ _
     _ < ε := by rw [abs_sub_comm]; linarith
 
 open scoped QInterval
 
 namespace ComputableℝSeq
 
+@[macro_inline]
 def of_TendstoLocallyUniformly_Continuous
     {f : ℝ → ℝ} (hf : Continuous f)
     (fImpl : ℕ → ℚInterval → ℚInterval)
