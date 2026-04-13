@@ -1096,4 +1096,158 @@ instance equiv : Setoid (ComputableℝSeq) :=
 theorem equiv_iff {x y : ComputableℝSeq} : x ≈ y ↔ x.val = y.val :=
   ⟨id, id⟩
 
+private noncomputable def ofCauchy.lub (c : CauSeq _ (abs : ℚ → ℚ)) (n : ℕ) : NonemptyInterval ℚ :=
+  let r := Real.ofCauchy ⟦c⟧
+  if h : c n < r then
+    let qe := exists_rat_btwn (x := r) (y := r + (r - c n) / 4) <| by linarith
+    ⟨(c n, qe.choose), by rify; exact h.le.trans qe.choose_spec.left.le⟩
+  else if h' : r < c n then
+    let qe := exists_rat_btwn (x := r - (c n - r) / 4) (y := r) <| by linarith
+    ⟨(qe.choose, c n), by rify; exact qe.choose_spec.right.le.trans h'.le⟩
+  else
+    ⟨(c n, c n), by rfl⟩
+
+-- theorem ofCachy.Real_ofCauchy_lub_eq : Real.ofCauchy (fun x => ((ofCauchy.lub c) x).fst) = Real.mk c
+
+noncomputable def ofCauchy (c : CauSeq _ (abs : ℚ → ℚ)) : ComputableℝSeq where
+  lub := ofCauchy.lub c
+  hcl := by
+    let r := Real.ofCauchy ⟦c⟧
+    intro ε εpos
+    let ⟨i, hj⟩ := c.property ε εpos
+    use i
+    intro j ilej
+    specialize hj j ilej
+    simp only [ofCauchy.lub]
+    split_ifs with h₀ _ _ h₁ h₂ h₃
+    · simp [hj]
+    · simp [abs] at hj ⊢
+      let qe := exists_rat_btwn (x := r - (c i - r) / 4) (y := r) <| by linarith
+      have := qe.choose_spec
+      show c j - qe.choose < ε ∧ qe.choose - c j < ε
+      constructor <;> (
+        apply lt_trans _ hj.right
+        rify
+        linarith
+      )
+    · simp [hj]
+    · simp [abs] at hj ⊢
+      let qe := exists_rat_btwn (x := r - (c j - r) / 4) (y := r) <| by linarith
+      have := qe.choose_spec
+      show qe.choose - c i < ε ∧ c i - qe.choose < ε
+      constructor <;> (
+        apply lt_trans _ hj.left
+        rify
+        linarith
+      )
+    · simp only
+      let qje := exists_rat_btwn (x := r - (c j - r) / 4) (y := r) <| by linarith
+      have ⟨h₅, _⟩ := qje.choose_spec
+      let qie := exists_rat_btwn (x := r - (c i - r) / 4) (y := r) <| by linarith
+      have ⟨h₄, h₆⟩ := qie.choose_spec
+      clear h₀ h₂
+      let hqi := qie.choose_spec.left
+      let hqj := qje.choose_spec.left
+      show |qje.choose - qie.choose| < ε
+      have h : c i - r ≤ ε := by
+        by_contra h
+        push Not at h
+        sorry
+      have h' : c j - r < ε * 2 := by calc
+        _ = |c j - r| := by
+          rw [abs_of_pos]
+          linarith
+        _ = |(c j - c i) + (c i - r)| := by simp
+        _ ≤ |(c j - c i : ℝ)| + |c i - r| := abs_add_le ..
+        _ < ε + ε := by
+          rify at hj
+          apply add_lt_add_of_lt_of_le hj
+          rwa [abs_of_pos]
+          linarith
+        _ = ε * 2 := by linarith
+      rify at hj ⊢
+      calc
+        _ = |(qje.choose - r) + (r - qie.choose)| := by simp
+        _ ≤ |qje.choose - r| + |r - qie.choose| := abs_add_le ..
+        _ = |-(qje.choose - r)| + |r - qie.choose| := by rw [abs_neg]
+        _ = |r - qje.choose| + |r - qie.choose| := by simp
+        _ < ε / 2 + ε / 2 := by
+          apply add_lt_add
+          · rw [abs_of_pos (by linarith), sub_lt_iff_lt_add]
+            apply lt_add_of_lt_add_left _ hqj.le
+            rw [← sub_lt_iff_lt_add, ← mul_lt_mul_iff_left₀ (a := 4) (by simp)]
+            ring_nf
+            rwa [_root_.add_comm, ← sub_eq_add_neg]
+          · rw [abs_of_pos (by linarith)]
+            linarith
+        _ = ε := by simp
+    · simp [abs] at hj ⊢
+      let qe := exists_rat_btwn (x := r - (c j - r) / 4) (y := r) <| by linarith
+      have := qe.choose_spec
+      show qe.choose - c i < ε ∧ c i - qe.choose < ε
+      constructor <;> (
+        apply lt_trans _ hj.left
+        rify
+        linarith
+      )
+    · simp [hj]
+    · simp [abs] at hj ⊢
+      let qe := exists_rat_btwn (x := r - (c i - r) / 4) (y := r) <| by linarith
+      have := qe.choose_spec
+      show c j - qe.choose < ε ∧ qe.choose - c j < ε
+      constructor <;> (
+        apply lt_trans _ hj.right
+        rify
+        linarith
+      )
+    · simp [hj]
+  hcu := sorry
+  hlub := by
+    sorry
+    /- intro n
+    simp only [ofCauchy.lub]
+    split_ifs
+    simp only -/
+  heq' := sorry
+
+@[simp]
+theorem ofCauchy_val_eq_Real_ofCauchy : val (ofCauchy c) = Real.ofCauchy (.mk _ c) := sorry
+
+partial def toInt (x : ComputableℝSeq) : Int := aux 0
+where
+  aux n : { i : Int // i = round x.val } :=
+    if h : round (x.lb n) = round (x.ub n) then
+      ⟨
+        round (x.lb n),
+        by
+          have := x.hlb n
+          have := x.hub n
+          apply eq_of_le_of_ge
+          · rw [← Rat.round_cast (α := ℝ), round_eq, round_eq]
+            apply Int.floor_le_floor
+            linarith
+          · rw [h, ← Rat.round_cast (α := ℝ), round_eq, round_eq]
+            apply Int.floor_le_floor
+            linarith
+      ⟩
+    else
+      aux n.succ
+
+theorem toInt_eq_round_val : toInt x = round x.val := (toInt.aux x 0).property
+
+def toFloat32 (r : ComputableℝSeq) : Float32 :=
+  let d : Int := 1000000
+  Float32.ofInt (toInt (r * d)) / Float32.ofInt d
+  /-
+  TODO: Make these exactly as precise as necessary somehow.
+
+  let i := r.toInt
+  let exponent : BitVec 8 := sorry
+  let fraction : BitVec 23 := sorry
+  .ofBits <| .ofBitVec <| BitVec.ofBool (i < 0) ++ exponent ++ fraction -/
+
+def toFloat (r : ComputableℝSeq) : Float :=
+  let d : Int := 1000000000000
+  Float.ofInt (toInt (r * d)) / Float.ofInt d
+
 end ComputableℝSeq

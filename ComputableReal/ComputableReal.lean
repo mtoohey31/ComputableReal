@@ -334,4 +334,31 @@ instance instIsStrictOrderedRing : IsStrictOrderedRing Computableℝ := by
 
 end ordered
 
+noncomputable def ofReal (r : ℝ) : Computableℝ :=
+  r.cauchy.lift (.mk ∘ ComputableℝSeq.ofCauchy) <| by
+    intro _ _ eqv
+    apply Quotient.sound
+    simp
+    exact Quotient.sound eqv
+
+theorem leftInverse_val_ofReal : Function.LeftInverse val ofReal := by
+  rintro ⟨⟨c⟩⟩
+  simp [ofReal]
+  rfl
+
+def toInt (r : Computableℝ) : Int := r.lift ComputableℝSeq.toInt <| by
+  intro x y eqv
+  simp [ComputableℝSeq.toInt_eq_round_val]
+  congr 1
+
+def toFloat32 (r : Computableℝ) : Float32 := r.lift ComputableℝSeq.toFloat32 <| by
+  intro x y eqv
+  simp [ComputableℝSeq.toFloat32, ComputableℝSeq.toInt_eq_round_val]
+  congr 4
+
+def toFloat (r : Computableℝ) : Float := r.lift ComputableℝSeq.toFloat <| by
+  intro x y eqv
+  simp [ComputableℝSeq.toFloat, ComputableℝSeq.toInt_eq_round_val]
+  congr 4
+
 end Computableℝ
