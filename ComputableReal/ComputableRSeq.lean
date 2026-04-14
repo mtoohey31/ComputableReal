@@ -1,3 +1,4 @@
+import Batteries.Data.Rat.Float
 import Mathlib.Algebra.Order.Interval.Basic
 import Mathlib.Data.Real.Archimedean
 import Mathlib.Data.Sign.Defs
@@ -1213,6 +1214,8 @@ noncomputable def ofCauchy (c : CauSeq _ (abs : ℚ → ℚ)) : ComputableℝSeq
 @[simp]
 theorem ofCauchy_val_eq_Real_ofCauchy : val (ofCauchy c) = Real.ofCauchy (.mk _ c) := sorry
 
+-- TODO: Add an optional parameter to specify different patterns for checking points.
+
 partial def toInt (x : ComputableℝSeq) : Int := aux 0
 where
   aux n : { i : Int // i = round x.val } :=
@@ -1238,16 +1241,33 @@ theorem toInt_eq_round_val : toInt x = round x.val := (toInt.aux x 0).property
 def toFloat32 (r : ComputableℝSeq) : Float32 :=
   let d : Int := 1000000
   Float32.ofInt (toInt (r * d)) / Float32.ofInt d
-  /-
-  TODO: Make these exactly as precise as necessary somehow.
-
-  let i := r.toInt
-  let exponent : BitVec 8 := sorry
-  let fraction : BitVec 23 := sorry
-  .ofBits <| .ofBitVec <| BitVec.ofBool (i < 0) ++ exponent ++ fraction -/
 
 def toFloat (r : ComputableℝSeq) : Float :=
   let d : Int := 1000000000000
   Float.ofInt (toInt (r * d)) / Float.ofInt d
+
+/-
+TODO: Try to make the idea below work.
+
+partial def toFloat32' (x : ComputableℝSeq) : Float32 := aux 0
+where
+  aux n : {
+      f : Float32 //
+      ∃ r, some r = Float.toRat? (Float32.toFloat f) ∧
+        ∀ f', ∀ r' ∈ Float.toRat? (Float32.toFloat f'), |x.val - r| ≤ |x.val - r'|
+    } :=
+    if (x.lb n).toFloat.toFloat32 == (x.ub n).toFloat.toFloat32 then
+      ⟨(x.lb n).toFloat.toFloat32, sorry⟩
+    else
+      aux n.succ
+
+partial def toFloat' (x : ComputableℝSeq) : Float := aux 0
+where
+  aux n : Float :=
+    if (x.lb n).toFloat == (x.ub n).toFloat then
+      (x.lb n).toFloat
+    else
+      aux n.succ
+-/
 
 end ComputableℝSeq
