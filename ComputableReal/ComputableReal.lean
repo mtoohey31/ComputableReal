@@ -100,6 +100,9 @@ instance instComputableZero : Zero Computableℝ :=
 instance instComputableOne : One Computableℝ :=
   ⟨mk 1⟩
 
+instance : Inhabited Computableℝ :=
+  ⟨0⟩
+
 variable (x y : Computableℝ)
 
 @[simp]
