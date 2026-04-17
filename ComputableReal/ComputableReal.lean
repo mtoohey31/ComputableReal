@@ -351,6 +351,10 @@ def toInt (r : Computableℝ) : Int := r.lift ComputableℝSeq.toInt <| by
   simp [ComputableℝSeq.toInt_eq_round_val]
   congr 1
 
+def ofFloat32 (f : Float32) : Option Computableℝ := .mk <$> ComputableℝSeq.ofFloat32 f
+
+def ofFloat (f : Float) : Option Computableℝ := .mk <$> ComputableℝSeq.ofFloat f
+
 def toFloat32 (r : Computableℝ) : Float32 := r.lift ComputableℝSeq.toFloat32 <| by
   intro x y eqv
   simp [ComputableℝSeq.toFloat32, ComputableℝSeq.toInt_eq_round_val]

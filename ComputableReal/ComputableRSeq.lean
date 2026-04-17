@@ -1238,6 +1238,10 @@ where
 
 theorem toInt_eq_round_val : toInt x = round x.val := (toInt.aux x 0).property
 
+def ofFloat (f : Float) : Option ComputableℝSeq := ofRat <$> f.toRat?
+
+def ofFloat32 (f : Float32) : Option ComputableℝSeq := ofFloat f.toFloat
+
 def toFloat32 (r : ComputableℝSeq) : Float32 :=
   let d : Int := 1000000
   Float32.ofInt (toInt (r * d)) / Float32.ofInt d
